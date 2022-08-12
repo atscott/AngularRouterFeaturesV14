@@ -1,31 +1,20 @@
-import {Component, Injectable, NgModule} from '@angular/core';
-import {BrowserModule} from '@angular/platform-browser';
-import {RouterModule, Routes} from '@angular/router';
+import {Component, inject, Injectable} from '@angular/core';
+import {RouterLinkWithHref, RouterOutlet, Routes} from '@angular/router';
 
 @Injectable({providedIn: 'root'})
 export class LoginService {
   isLoggedIn = false;
 }
 
-@Injectable({providedIn: 'root'})
-export class IsLoggedInGuard {
-  constructor(private loginService: LoginService) {}
-
-  canMatch() {
-    return this.loginService.isLoggedIn;
-  }
-}
-
-@Component({template: 'home'})
+@Component({template: 'home', standalone: true})
 export class HomeComponent {
-}
-
-@Component({template: 'not found'})
-export class NotFoundComponent {
 }
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  // New feature in 14.1. Router directives are standalone. You can now explitily see what this component depends on
+  imports: [RouterOutlet, RouterLinkWithHref],
   template: `
   <div><button (click)="loginService.isLoggedIn = true">log in</button></div>
   <div><button (click)="loginService.isLoggedIn = false">log out</button></div>
@@ -38,28 +27,18 @@ export class AppComponent {
   constructor(readonly loginService: LoginService) {}
 }
 
-const routes: Routes = [
+export const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'home'},
-  {path: 'home', component: HomeComponent},
+  // New feature in v14: defining browser title on routes
+  {path: 'home', component: HomeComponent, title: 'home'},
   {
     path: 'user',
     // new feature since 14.1 that allows ignoring this route if the guard returns false
-    canMatch: [IsLoggedInGuard],
-    loadChildren: () => import('./user.module').then(m => m.UserModule),
+    // New feature in 14.2 - guards and resolvers can be functions
+    canMatch: [()=> inject(LoginService).isLoggedIn],
+    // new feature since 14.0 - You can import routes directly instead of needing an NgModule and RouterModule.forChild
+    loadChildren: () => import('./user.module').then(m => m.userRoutes),
   },
-  {path: '**', component: NotFoundComponent},
+  // New feature in 14.0 components themselves can be lazy loaded
+  {path: '**', loadComponent: () => import('./not.found.component').then(c => c.NotFoundComponent), title: 'not found'}
 ];
-
-@NgModule({
-  declarations: [
-    AppComponent,
-    HomeComponent,
-  ],
-  imports: [
-    RouterModule.forRoot(routes, {onSameUrlNavigation: 'reload'}),
-    BrowserModule,
-  ],
-  bootstrap: [AppComponent]
-})
-export class AppModule {
-}

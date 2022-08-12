@@ -1,12 +1,17 @@
-import { enableProdMode } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import {enableProdMode} from '@angular/core';
+import {bootstrapApplication} from '@angular/platform-browser';
+import {provideRouter, withRouterConfig} from '@angular/router';
 
-import { AppModule } from './app/app.module';
-import { environment } from './environments/environment';
+import {AppComponent, routes} from './app/app.module';
+import {environment} from './environments/environment';
 
 if (environment.production) {
   enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(AppModule)
-  .catch(err => console.error(err));
+bootstrapApplication(AppComponent, {
+  providers: [
+    // New feature in 14.2 - using Router without RouterModule
+    provideRouter(routes, withRouterConfig({onSameUrlNavigation: 'reload'})),
+  ]
+})
