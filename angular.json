@@ -102,5 +102,8 @@
       }
     }
   },
-  "defaultProject": "exampleApp"
+  "defaultProject": "exampleApp",
+  "cli": {
+    "analytics": false
+  }
 }
